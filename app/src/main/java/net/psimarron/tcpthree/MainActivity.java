@@ -32,7 +32,7 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
-    private InetAddress IPAddress ;
+    private InetAddress IPAddress;
 
     private int IPPort;
 
@@ -166,7 +166,7 @@ public class MainActivity extends AppCompatActivity {
         return "";
     }
 
-    private static Bitmap createQRCode(String str)  {
+    private static Bitmap createQRCode(String str) {
         BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
 
         try {
@@ -182,29 +182,27 @@ public class MainActivity extends AppCompatActivity {
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         IntentResult intentResult = IntentIntegrator.parseActivityResult(requestCode, resultCode, data);
 
-        if(intentResult ==null)
+        if (intentResult == null)
             super.onActivityResult(requestCode, resultCode, data);
         else {
             String endpoint = intentResult.getContents();
 
-            if(endpoint != null){
+            if (endpoint != null) {
                 try {
                     String[] parts = endpoint.split(":");
 
-                    if(parts.length == 2){
+                    if (parts.length == 2) {
                         InetAddress ip = InetAddress.getByName(parts[0]);
                         int port = Integer.parseUnsignedInt(parts[1]);
 
-                        if(ip != null&&port >0&&port <= 0xffff){
+                        if (ip != null && port > 0 && port <= 0xffff) {
                             IPAddress = ip;
                             IPPort = port;
 
                             findViewById(R.id.send_button).setEnabled(true);
                         }
                     }
-
-
-                } catch(Exception e) {
+                } catch (Exception e) {
                 }
             }
         }
