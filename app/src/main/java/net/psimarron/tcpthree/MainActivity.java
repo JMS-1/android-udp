@@ -58,6 +58,8 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        LoadSettings();
+
         String endpoint = String.format("%s:%d", getIPAddress(), ServerPort);
 
         TextView serverIp = findViewById(R.id.server_ip);
@@ -118,8 +120,6 @@ public class MainActivity extends AppCompatActivity {
 
             SetEndpoint(ip + ":" + port);
         }
-
-        LoadSettings();
     }
 
     private class RunServerInThread extends Thread {
@@ -198,8 +198,8 @@ public class MainActivity extends AppCompatActivity {
 
         if (intentResult == null)
             super.onActivityResult(requestCode, resultCode, data);
-        else
-            SetEndpoint(intentResult.getContents());
+        else if (SetEndpoint(intentResult.getContents()))
+            SaveSettings();
     }
 
     private boolean SetEndpoint(String endpoint) {
