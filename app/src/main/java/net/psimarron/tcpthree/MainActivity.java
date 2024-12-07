@@ -1,9 +1,9 @@
 package net.psimarron.tcpthree;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.os.Bundle;
-import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -32,7 +32,11 @@ import java.util.Date;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private final String IPADDRESS = "IPAddress";
+
     private InetAddress IPAddress;
+
+    private final String IPPORT = "IPPort";
 
     private int IPPort;
 
@@ -104,8 +108,18 @@ public class MainActivity extends AppCompatActivity {
 
             intentIntegrator.setPrompt("Scan Server Endpoint from QR Code");
             intentIntegrator.setBeepEnabled(false);
+            intentIntegrator.setOrientationLocked(true);
             intentIntegrator.initiateScan();
         });
+
+        if (savedInstanceState != null) {
+            String ip = savedInstanceState.getString(IPADDRESS);
+            int port = savedInstanceState.getInt(IPPORT);
+
+            SetEndpoint(ip + ":" + port);
+        }
+
+        LoadSettings();
     }
 
     private class RunServerInThread extends Thread {
@@ -184,27 +198,79 @@ public class MainActivity extends AppCompatActivity {
 
         if (intentResult == null)
             super.onActivityResult(requestCode, resultCode, data);
-        else {
-            String endpoint = intentResult.getContents();
+        else
+            SetEndpoint(intentResult.getContents());
+    }
 
-            if (endpoint != null) {
-                try {
-                    String[] parts = endpoint.split(":");
+    private boolean SetEndpoint(String endpoint) {
+        if (endpoint != null)
+            try {
+                String[] parts = endpoint.split(":");
 
-                    if (parts.length == 2) {
-                        InetAddress ip = InetAddress.getByName(parts[0]);
-                        int port = Integer.parseUnsignedInt(parts[1]);
+                if (parts.length == 2) {
+                    InetAddress ip = InetAddress.getByName(parts[0]);
+                    int port = Integer.parseUnsignedInt(parts[1]);
 
-                        if (ip != null && port > 0 && port <= 0xffff) {
-                            IPAddress = ip;
-                            IPPort = port;
+                    if (ip == null && port < 1 && port > 0xffff) return false;
 
-                            findViewById(R.id.send_button).setEnabled(true);
-                        }
-                    }
-                } catch (Exception e) {
+                    IPAddress = ip;
+                    IPPort = port;
+
+                    findViewById(R.id.send_button).setEnabled(true);
+
+                    TextView lastMessage = findViewById(R.id.last_message);
+
+                    lastMessage.setText(ip.getHostAddress() + ":" + port);
+
+                    return true;
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
-        }
+
+        return false;
+    }
+
+    private void SaveSettings() {
+        if (IPAddress == null) return;
+
+        SharedPreferences prefs = getSharedPreferences("TcpThree", MODE_PRIVATE);
+
+        SharedPreferences.Editor editor = prefs.edit();
+
+        editor.putString(IPADDRESS, IPAddress.getHostAddress());
+        editor.putInt(IPPORT, IPPort);
+
+        editor.commit();
+    }
+
+    private void LoadSettings() {
+        SharedPreferences prefs = getSharedPreferences("TcpThree", MODE_PRIVATE);
+
+        String ip = prefs.getString(IPADDRESS, null);
+        int port = prefs.getInt(IPPORT, -1);
+
+        if (ip != null && port != -1) SetEndpoint(ip + ":" + port);
+    }
+
+    @Override
+    protected void onStop() {
+        SaveSettings();
+
+        super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        SaveSettings();
+
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+        LoadSettings();
     }
 }
