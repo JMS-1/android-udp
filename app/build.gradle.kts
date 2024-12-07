@@ -9,9 +9,9 @@ android {
     defaultConfig {
         applicationId = "net.psimarron.tcpthree"
         minSdk = 26
-        targetSdk = 34
-        versionCode = 3
-        versionName = "1.2"
+        targetSdk = 35
+        versionCode = 4
+        versionName = "1.3"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
